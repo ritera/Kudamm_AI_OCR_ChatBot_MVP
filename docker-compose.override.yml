@@ -5,3 +5,10 @@ services:
     volumes:
       - ./backend/app:/app/app
       # - ${USERPROFILE}\\.paddlex:/root/.paddlex         # 선택
+  frontend:
+    environment:
+      - NODE_ENV=development
+      - BACKEND_URL=http://backend:8000
+    command: npm run dev
+    volumes:
+      - ./frontend:/app

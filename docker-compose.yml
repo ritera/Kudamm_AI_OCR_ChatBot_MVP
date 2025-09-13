@@ -16,5 +16,7 @@ services:
     build: ./frontend
     depends_on: [backend]
     restart: unless-stopped
+    environment:
+      - BACKEND_URL=http://backend:8000
     ports:
-      - "3003:80"        # ▶︎ 호스트 3003 → 컨테이너 80
+      - "3003:3000"      # 호스트:컨테이너

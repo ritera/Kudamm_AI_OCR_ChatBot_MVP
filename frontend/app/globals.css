@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 부드러운 스크롤 & 기본 톤 */
+html, body {
+  scroll-behavior: smooth;
+  @apply bg-white text-brand;
+}
+
+/* 섹션 공통 여백 */
+.section {
+  @apply py-20 md:py-28;
+}
+
+/* 얇은 구분선 */
+.hr {
+  @apply border-t border-neutral-200;
+}

@@ -1,22 +1,23 @@
-# ---------- build 단계 ----------
-FROM node:20-slim AS build
+# --- deps ---
+FROM node:20-alpine AS deps
 WORKDIR /app
+COPY package.json ./
+RUN npm install
 
-# 패키지 메타
-COPY package.json vite.config.js ./
+# --- build ---
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npm run build
 
-# Vite는 루트 index.html 필요
-COPY index.html ./
-
-# 소스 & 정적 파일
-COPY src ./src
-COPY public ./public
-
-RUN npm install && npm run build
-
-# ---------- 실행 단계 ----------
-FROM nginx:1.27-alpine
-COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# --- run ---
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+# Next.js 런타임 필요한 파일만 복사
+COPY --from=build /app/.next ./.next
+COPY --from=build /app/public ./public
+COPY --from=build /app/package.json ./package.json
+EXPOSE 3000
+CMD ["npm", "run", "start"]
