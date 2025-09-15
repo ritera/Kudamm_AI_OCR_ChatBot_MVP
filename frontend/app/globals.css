@@ -2,18 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 부드러운 스크롤 & 기본 톤 */
 html, body {
-  scroll-behavior: smooth;
   @apply bg-white text-brand;
+  scroll-behavior: smooth;
 }
 
-/* 섹션 공통 여백 */
 .section {
-  @apply py-20 md:py-28;
+  @apply py-16 md:py-24;
 }
 
-/* 얇은 구분선 */
-.hr {
-  @apply border-t border-neutral-200;
+
+/* Page-wide background image (Hanok Village) */
+body {
+  background-image: url('/images/hanok.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+
+/* Translucent panel for text legibility over background images */
+.glass {
+  /* light card */
+  background-color: rgba(255,255,255,0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 0.75rem; /* rounded-xl */
+  box-shadow: 0 2px 8px rgba(16,24,40,0.06);
 }

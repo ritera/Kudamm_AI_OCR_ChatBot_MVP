@@ -1,42 +1,42 @@
-############################
-# 1) build stage
-############################
-FROM python:3.11-slim AS build
+# syntax=docker/dockerfile:1
 
+# 안정성을 위해 bookworm 고정
+FROM python:3.11-slim-bookworm AS base
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# OpenCV/Paddle 런타임 의존성 (GL/X11 계열은 최신에서 libgl1 사용)
 RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        libgl1-mesa-glx libglib2.0-0 libgomp1 && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        libgl1 \
+        libglib2.0-0 \
+        libgomp1 \
+        libsm6 \
+        libxext6 \
+        libxrender1 && \
     rm -rf /var/lib/apt/lists/*
+
+# 가상환경 생성 (빌드/런타임 동일 경로 사용)
+ENV VIRTUAL_ENV=/opt/venv
+RUN python -m venv "$VIRTUAL_ENV"
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 WORKDIR /app
 
+# --- deps stage: 파이썬 의존성 설치 ---
+FROM base AS deps
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
-    -f https://www.paddlepaddle.org.cn/whl/mkl/avx/stable.html
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
 
-# 앱 소스 복사
+# --- runtime stage: 앱만 복사 ---
+FROM base AS runtime
+WORKDIR /app
+COPY --from=deps /opt/venv /opt/venv
 COPY app ./app
 
-# ⚠️ 빌드 중 모델 미리받기(캐시) 제거!
-#    URL 하나라도 404면 빌드가 실패하므로 런타임 때 지연 다운로드/캐시로 전환
-
-############################
-# 2) runtime stage
-############################
-FROM python:3.11-slim
-
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        libgl1-mesa-glx libglib2.0-0 libgomp1 && \
-    rm -rf /var/lib/apt/lists/*
-
-WORKDIR /app
-COPY --from=build /usr/local/lib/python3.11 /usr/local/lib/python3.11
-COPY --from=build /usr/local/bin /usr/local/bin
-COPY --from=build /app/app ./app
-
-# 기본 번역 언어: 한국어
-ENV DEFAULT_LANG=ko
-ENV PYTHONUNBUFFERED=1
-
+EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

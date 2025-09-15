@@ -1,11 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async rewrites() {
-    // Next 서버가 /api/* 요청을 FastAPI로 프록시
-    const target = process.env.BACKEND_URL || "http://localhost:8000";
-    return [
-      { source: "/api/:path*", destination: `${target}/api/:path*` }
-    ];
+    const target = process.env.BACKEND_URL;
+    // OCR 백엔드가 있을 경우에만 프록시. 없으면 Next 라우트(app/api/ocr) 사용
+    return target ? [{ source: "/api/ocr", destination: `${target}/api/ocr` }] : [];
   }
 };
 export default nextConfig;
