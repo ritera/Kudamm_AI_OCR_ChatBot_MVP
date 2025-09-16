@@ -1,0 +1,9 @@
+kudamm-korea.com, www.kudamm-korea.com {
+  encode zstd gzip
+
+  # www → apex 리다이렉트
+  @www host www.kudamm-korea.com
+  redir @www https://kudamm-korea.com{uri} permanent
+
+  reverse_proxy frontend:3000
+}

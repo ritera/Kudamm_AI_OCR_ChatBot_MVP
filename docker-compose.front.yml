@@ -1,0 +1,26 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      - NODE_ENV=production
+    expose:
+      - "3000"          # 프런트는 내부 포트만 노출
+    restart: always
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+    restart: always
+
+volumes:
+  caddy_data:
+  caddy_config:

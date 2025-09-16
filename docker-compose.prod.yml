@@ -1,0 +1,35 @@
+services:
+  backend:
+    build: ./backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+    expose:
+      - "8000"
+    restart: always
+
+  frontend:
+    build: ./frontend
+    environment:
+      - NODE_ENV=production
+      - BACKEND_URL=http://backend:8000
+    expose:
+      - "3000"
+    depends_on:
+      - backend
+    restart: always
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+    restart: always
+
+volumes:
+  caddy_data:
+  caddy_config:
